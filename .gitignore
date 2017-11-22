@@ -105,3 +105,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+.idea/inspectionProfiles/
+.idea/vcs.xml
+.idea/workspace.xml

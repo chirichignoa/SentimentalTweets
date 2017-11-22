@@ -45,7 +45,7 @@ class TweetsManager(object):
 
             print classified_tweets
 
-            self.db.insert_tweets(category, today_date, classified_tweets)
+            self.db.insert_tweets(category, datetime.date.today().isoformat(), classified_tweets)
         else:
             print('Getting tweets from BD')
             classified_tweets = self.db.get_last_tweets(category)
