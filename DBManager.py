@@ -28,27 +28,32 @@ class DBManager:
             print(err)
             raise  # para no perder el stack trace.
 
-    def insert_tweets(self, category, date, tweets):
+    def insert_tweets(self, category, date, geocode, tweets):
         collection = self.database['opinions']
-        collection.update({'category': category, 'date': date}, {'$push': {'tweets': tweets}}, upsert=True)
+        collection.update({'category': category, 'date': date, 'location': geocode}, {'$push': {'tweets': tweets}}, upsert=True)
 
     def get_last_date(self, category):
         collection = self.database['opinions']
         date_cursor = collection.aggregate([
-                                        {'$group': {'_id': "$category", 'max_date': {'$max': '$date'}}},
+                                        {'$group': {'_id': "$category", 'location': '$location', 'max_date': {'$max': '$date'}}},
                                         {'$match': {'_id': category}}
                                         ])
+
+        # {'$group': {'_id': { "$category", 'location': '$location' } 'max_date': {'$max': '$date'}}},
+                                       # {'$match': {'_id': category}}
+                                       # ])
+
         if date_cursor is not None:
             for doc in date_cursor:
                 return datetime.datetime.strptime(doc['max_date'], "%Y-%m-%d").date()
         else:
             return None
 
-    def get_last_tweets(self, category):
+    def get_last_tweets(self, category, geocode):
         collection = self.database['opinions']
         tweets_cursor = collection.aggregate([
-                                {'$group': {'_id': "$category", 'tweets': {'$push': '$tweets'}}},
-                                {'$match': {'_id': category}}])
+                                {'$group': {'_id': "$category", 'location': '$location', 'tweets': {'$push': '$tweets'}}},
+                                {'$match': {'_id': category, 'location': geocode}}])
 
         if tweets_cursor is not None:
             for doc in tweets_cursor:

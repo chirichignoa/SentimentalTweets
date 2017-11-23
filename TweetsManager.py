@@ -14,13 +14,14 @@ class TweetsManager(object):
     SECRET_TOKEN = "GVX80GRWtVvXtPg9EwIjBMKQh71pQEtwhW1iko9U9rc3r"
     TWEETS_LIMIT = 50
     LANGUAGE = 'es'
+    MAX_RADIUS = '100km'
 
     def __init__(self):
         '''Instancia de twitter API'''
         self.api = TwitterAPI(self.API_KEY, self.API_SECRET, self.ACCESS_TOKEN, self.SECRET_TOKEN)
         self.db = DBManager.Instance()
 
-    def getTweets(self, category):
+    def getTweets(self, category, geocode):
 
         last_date = self.db.get_last_date(category)
         today_date = datetime.datetime.strptime(datetime.date.today().isoformat(), "%Y-%m-%d").date()
@@ -29,7 +30,7 @@ class TweetsManager(object):
             print('Building request')
             response = self.api.request('search/tweets',
                                         {'q': category + '-filter:retweets', 'count': self.TWEETS_LIMIT,
-                                         'lang': self.LANGUAGE})
+                                         'lang': self.LANGUAGE, 'geocode': geocode + self.MAX_RADIUS})
             texts = []
             for item in response:
                 # transformar el json para que en mongo quede formateado. Sino, queda co un string con saltos de linea.
@@ -45,10 +46,10 @@ class TweetsManager(object):
 
             print classified_tweets
 
-            self.db.insert_tweets(category, datetime.date.today().isoformat(), classified_tweets)
+            self.db.insert_tweets(category, datetime.date.today().isoformat(), geocode, classified_tweets)
         else:
             print('Getting tweets from BD')
-            classified_tweets = self.db.get_last_tweets(category)
+            classified_tweets = self.db.get_last_tweets(category, geocode)
 
         return classified_tweets
 
