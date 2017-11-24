@@ -35,13 +35,13 @@ class DBManager:
     def get_last_date(self, category):
         collection = self.database['opinions']
         date_cursor = collection.aggregate([
-                                        {'$group': {'_id': "$category", 'location': '$location', 'max_date': {'$max': '$date'}}},
+                                        {'$group': {'_id': "$category",  'max_date': {'$max': '$date'}}},
                                         {'$match': {'_id': category}}
                                         ])
 
         # {'$group': {'_id': { "$category", 'location': '$location' } 'max_date': {'$max': '$date'}}},
                                        # {'$match': {'_id': category}}
-                                       # ])
+                                       # ]) # 'location': '$location',
 
         if date_cursor is not None:
             for doc in date_cursor:

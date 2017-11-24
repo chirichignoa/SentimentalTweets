@@ -3,6 +3,8 @@ from TweetsManager import TweetsManager
 
 app = Flask(__name__)
 
+MAX_RADIUS = '100km'
+
 
 @app.route('/', methods=['GET'])
 def getUserOpinions():
@@ -14,7 +16,7 @@ def getUserOpinions():
         return Response('no pasaste los parametros comosos', status=401, mimetype='application/json')
 
     if latitude is not None and longitude is not None:
-        geocode = latitude + ' ' + longitude
+        geocode = latitude + ' ' + longitude + ' ' + MAX_RADIUS
         print("Geocode: " + geocode)
         tweets = TweetsManager().getTweets(category, geocode)
         response = Response(tweets, status=200, mimetype='application/json')

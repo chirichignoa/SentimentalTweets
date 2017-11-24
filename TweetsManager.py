@@ -14,7 +14,6 @@ class TweetsManager(object):
     SECRET_TOKEN = "GVX80GRWtVvXtPg9EwIjBMKQh71pQEtwhW1iko9U9rc3r"
     TWEETS_LIMIT = 50
     LANGUAGE = 'es'
-    MAX_RADIUS = '100km'
 
     def __init__(self):
         '''Instancia de twitter API'''
@@ -30,7 +29,7 @@ class TweetsManager(object):
             print('Building request')
             response = self.api.request('search/tweets',
                                         {'q': category + '-filter:retweets', 'count': self.TWEETS_LIMIT,
-                                         'lang': self.LANGUAGE, 'geocode': geocode + self.MAX_RADIUS})
+                                         'lang': self.LANGUAGE, 'geocode': geocode})
             texts = []
             for item in response:
                 # transformar el json para que en mongo quede formateado. Sino, queda co un string con saltos de linea.
