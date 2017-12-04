@@ -6,6 +6,8 @@ from flask import json
 
 from Singleton import Singleton
 from pymongo import MongoClient
+from bson import BSON
+from bson import json_util
 
 """El manager es singleton para evitar multiples instancias"""
 
@@ -28,20 +30,20 @@ class DBManager:
             print(err)
             raise  # para no perder el stack trace.
 
-    def insert_tweets(self, category, date, geocode, tweets):
+    def insert_tweets(self, category, date, tweets):
         collection = self.database['opinions']
-        collection.update({'category': category, 'date': date, 'location': geocode}, {'$push': {'tweets': tweets}}, upsert=True)
+
+        collection.update(
+            {'category': category, 'date': date},
+            {'$push':{'tweets': tweets}
+            }, upsert=True)
 
     def get_last_date(self, category):
         collection = self.database['opinions']
         date_cursor = collection.aggregate([
-                                        {'$group': {'_id': "$category",  'max_date': {'$max': '$date'}}},
-                                        {'$match': {'_id': category}}
-                                        ])
-
-        # {'$group': {'_id': { "$category", 'location': '$location' } 'max_date': {'$max': '$date'}}},
-                                       # {'$match': {'_id': category}}
-                                       # ]) # 'location': '$location',
+                        {'$group': {'_id': "$category",  'max_date': {'$max': '$date'}}},
+                        {'$match': {'_id': category}}
+        ])
 
         if date_cursor is not None:
             for doc in date_cursor:
@@ -49,12 +51,15 @@ class DBManager:
         else:
             return None
 
-    def get_last_tweets(self, category, geocode):
+    def get_last_tweets(self, category):
         collection = self.database['opinions']
         tweets_cursor = collection.aggregate([
-                                {'$group': {'_id': "$category", 'location': '$location', 'tweets': {'$push': '$tweets'}}},
-                                {'$match': {'_id': category, 'location': geocode}}])
+                            {'$group': {'_id': "$category", 'tweets': {'$push': '$tweets'}}},
+                            {'$match': {'_id': 'pija'}},
+                            {'$unwind': "$tweets"},
+                            {"$unwind":"$tweets"}
+        ])
 
         if tweets_cursor is not None:
             for doc in tweets_cursor:
-                return json.dumps(doc['tweets'], sort_keys=True, indent=4, separators=(',', ': '))
+                return json.dumps(doc['tweets'], sort_keys=True, indent=4, separators=(',', ': '), default=json_util.default)

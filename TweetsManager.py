@@ -20,7 +20,7 @@ class TweetsManager(object):
         self.api = TwitterAPI(self.API_KEY, self.API_SECRET, self.ACCESS_TOKEN, self.SECRET_TOKEN)
         self.db = DBManager.Instance()
 
-    def getTweets(self, category, geocode):
+    def getTweets(self, category):
 
         last_date = self.db.get_last_date(category)
         today_date = datetime.datetime.strptime(datetime.date.today().isoformat(), "%Y-%m-%d").date()
@@ -29,7 +29,7 @@ class TweetsManager(object):
             print('Building request')
             response = self.api.request('search/tweets',
                                         {'q': category + '-filter:retweets', 'count': self.TWEETS_LIMIT,
-                                         'lang': self.LANGUAGE, 'geocode': geocode})
+                                         'lang': self.LANGUAGE})
             texts = []
             for item in response:
                 # transformar el json para que en mongo quede formateado. Sino, queda co un string con saltos de linea.
@@ -41,19 +41,21 @@ class TweetsManager(object):
                     'user_screen_name': item['user']['screen_name']
                 })
 
+            texts = json.dumps(texts)
+
             classified_tweets = self.classify_tweets(texts)
 
             print classified_tweets
 
-            self.db.insert_tweets(category, datetime.date.today().isoformat(), geocode, classified_tweets)
+            self.db.insert_tweets(category, datetime.date.today().isoformat(), json.loads(classified_tweets)) #paso los tweets como un diccionario.
         else:
             print('Getting tweets from BD')
-            classified_tweets = self.db.get_last_tweets(category, geocode)
+            classified_tweets = self.db.get_last_tweets(category)
 
         return classified_tweets
 
     @staticmethod
     def classify_tweets(tweets):
         api = Sentiment140API('')
-        result = api.bulk_classify_json(tweets)
-        return json.dumps(result, sort_keys=True, indent=4, separators=(',', ': '))
+        result = api.bulk_classify_json(json.loads(tweets))
+        return json.dumps(result, sort_keys=True, indent=0, separators=(',', ': '))
