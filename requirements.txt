@@ -18,5 +18,5 @@ six==1.11.0
 textblob==0.13.1
 TwitterAPI==2.4.6
 Unidecode==0.4.21
-urllib3==1.22
+urllib3==1.26.5
 Werkzeug==0.12.2
